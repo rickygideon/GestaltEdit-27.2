@@ -1,0 +1,43 @@
+name: Build and Archive iOS App
+
+on:
+  workflow_dispatch: # Membuat tombol "Run workflow" agar bisa dijalankan manual dari tab Actions
+
+jobs:
+  build:
+    runs-on: macos-latest
+
+    steps:
+      # 1. Mengambil kode dari repository GitHub
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      # 2. Mengatur versi Xcode yang digunakan di runner macOS
+      - name: Set up Xcode
+        uses: maxim-lobanov/setup-xcode@v1
+        with:
+          xcode-version: latest
+
+      # 3. Menyiapkan direktori penyimpanan hasil build
+      - name: Create Build Directory
+        run: mkdir -p build
+
+      # 4. Melakukan Compile dan Archive (.xcarchive)
+      - name: Build and Archive Project
+        run: |
+          xcodebuild -project GestaltEdit.xcodeproj \
+                     -scheme "GestaltEdit" \
+                     -sdk iphoneos \
+                     -configuration Release \
+                     -archivePath "$PWD/build/GestaltEdit.xcarchive" \
+                     CODE_SIGN_IDENTITY="" \
+                     CODE_SIGNING_REQUIRED=NO \
+                     CODE_SIGNING_ALLOWED=NO \
+                     archive
+
+      # 5. Menyimpan hasil archive agar bisa di-download melalui tab Actions
+      - name: Upload Build Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: GestaltEdit-Archive
+          path: build/GestaltEdit.xcarchive
